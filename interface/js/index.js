@@ -182,20 +182,40 @@ function elapsedTimeReachedMaximumRecordingTime(elapsedTime) {
     return elapsedHours === maximumRecordingTimeInHours;
 }
 
-function uploadAudio(audioBlob) {
-    const formData = new FormData();
-    formData.append("audio", audioBlob, "recording.wav");
 
-    fetch("https://yourserver.com/upload", {
+function uploadAudio(audioBlob) {
+    var formData = new FormData();
+    formData.append("audio", audioBlob, "recording.wav");
+    formData.append("gender", selectedGenderSpan.textContent);
+
+    fetch("/upload-audio/", {
         method: "POST",
-        body: formData
-    }).then(response => {
-        if (response.ok) {
-            console.log("Audio uploaded successfully.");
-        } else {
-            console.error("Audio upload failed.");
+        body: formData,
+        headers: {
+            "X-CSRFToken": getCookie("csrftoken") // Assuming you have a function to get CSRF token
         }
-    }).catch(error => {
-        console.error("Error uploading audio: ", error);
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log("Success:", data);
+    })
+    .catch(error => {
+        console.error("Error:", error);
     });
+}
+
+// Helper function to get CSRF token
+function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie !== "") {
+        var cookies = document.cookie.split(";");
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + "=")) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
 }
